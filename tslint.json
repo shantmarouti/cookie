@@ -1,0 +1,43 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "import-blacklist": [true, "rxjs", "rxjs/Rx"],
+    "interface-name": false,
+    "max-classes-per-file": false,
+    "member-access": [false],
+    "member-ordering": [
+      true,
+      {
+        "order": ["static-field", "instance-field", "static-method", "instance-method"]
+      }
+    ],
+    "no-console": false,
+    "no-empty": false,
+    "no-parameter-reassignment": true,
+    "quotemark": {
+      "options": ["single", "avoid-escape"]
+    },
+    "semicolon": [true, "always"],
+    "trailing-comma": false,
+    "whitespace": {
+      "options": ["check-branch", "check-decl", "check-operator", "check-separator", "check-type", "check-module", "check-rest-spread", "check-type-operator", "check-preblock"]
+    },
+    "typedef": [
+      true,
+      "call-signature",
+      "arrow-call-signature",
+      "parameter",
+      "arrow-parameter",
+      "property-declaration",
+      "variable-declaration",
+      "member-variable-declaration",
+      "object-destructuring",
+      "array-destructuring"
+    ],
+    "no-angle-bracket-type-assertion": false,
+    "array-type": false
+  },
+  "rulesDirectory": []
+}

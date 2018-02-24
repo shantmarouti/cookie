@@ -1,0 +1,8 @@
+{
+    "editor.rulers": [100],
+    "prettier.arrowParens": "always",
+    "prettier.ignorePath": "./.prettierignore",
+    "prettier.requireConfig": true,
+    "tslint.autoFixOnSave": true,
+    "typescript.tsdk": "./node_modules/typescript/lib"
+}
