@@ -9,3 +9,5 @@ export {
 } from './errors';
 export { CookieEncoderOptions, CookieOptions, CookieParserOptions } from './options';
 export { CookieParser } from './parser';
+
+export { merge, removeExpired } from './helpers';

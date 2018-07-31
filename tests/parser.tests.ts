@@ -659,5 +659,4 @@ describe('CookieParser', () => {
             assert.deepEqual(result, '__Host-id=5');
         });
     });
-
 });
