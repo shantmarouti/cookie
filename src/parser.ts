@@ -2,7 +2,7 @@ import { BaseCookieEncoder } from './base-encoder';
 import { Cookie } from './cookie';
 import { CookieEncoder } from './encoder';
 import { InvalidCookieStringError } from './errors';
-import { mergeCookieParserOptions, Required, cookieParserToEncoderOptions } from './option-helpers';
+import { cookieParserToEncoderOptions, mergeCookieParserOptions, Required } from './option-helpers';
 import { CookieEncoderOptions, CookieParserOptions } from './options';
 
 // ----------------------------------------------------------------------------
