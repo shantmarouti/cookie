@@ -1,76 +1,80 @@
+import { BaseCookieEncoder } from './base-encoder';
 import { Cookie } from './cookie';
 import { CookieEncoder } from './encoder';
 import { InvalidCookieStringError } from './errors';
-import { mergeCookieParserOptions, mergeOptionsWithDefaults, Required } from './option-helpers';
-import { CookieEncoderOptions, CookieOptions, CookieParserOptions } from './options';
+import { mergeCookieParserOptions, Required, cookieParserToEncoderOptions } from './option-helpers';
+import { CookieEncoderOptions, CookieParserOptions } from './options';
 
+// ----------------------------------------------------------------------------
 // Refrences
 // https://tools.ietf.org/html/rfc6265
 // https://tools.ietf.org/html/draft-west-first-party-cookies-07
 // https://tools.ietf.org/html/draft-ietf-httpbis-cookie-prefixes-00
+// ----------------------------------------------------------------------------
+//
+// ---- https://tools.ietf.org/html/rfc6265#section-4.1 -----------------------
+//
+//      set-cookie-header = "Set-Cookie:" SP set-cookie-string
+//      set-cookie-string = cookie-pair *( ";" SP cookie-av )
+//      cookie-pair       = cookie-name "=" cookie-value
+//      cookie-name       = token
+//      cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
+//      cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
+//                            ; US-ASCII characters excluding CTLs,
+//                            ; whitespace DQUOTE, comma, semicolon,
+//                            ; and backslash
+//      token             = <token, defined in [RFC2616], Section 2.2>
+//      token             = 1*<any CHAR except CTLs or separators>
+//      separators        = "(" | ")" | "<" | ">" | "@"
+//                        | "," | ";" | ":" | "\" | <">
+//                        | "/" | "[" | "]" | "?" | "="
+//                        | "{" | "}" | SP | HT
+//      cookie-av         = expires-av / max-age-av / domain-av /
+//                          path-av / secure-av / httponly-av /
+//                          extension-av
+//      expires-av        = "Expires=" sane-cookie-date
+//      sane-cookie-date  = <rfc1123-date, defined in [RFC2616], Section 3.3.1>
+//      max-age-av        = "Max-Age=" non-zero-digit *DIGIT
+//                            ; In practice, both expires-av and max-age-av
+//                            ; are limited to dates representable by the
+//                            ; user agent.
+//      non-zero-digit    = %x31-39
+//                            ; digits 1 through 9
+//      domain-av         = "Domain=" domain-value
+//      domain-value      = <subdomain>
+//                            ; defined in [RFC1034], Section 3.5, as
+//                            ; enhanced by [RFC1123], Section 2.1
+//      path-av           = "Path=" path-value
+//      path-value        = <any CHAR except CTLs or ";">
+//      secure-av         = "Secure"
+//      httponly-av       = "HttpOnly"
+//      extension-av      = <any CHAR except CTLs or ";">
+//      OCTET          = <any 8-bit sequence of data>
+//      CHAR           = <any US-ASCII character (octets 0 - 127)>
+//      UPALPHA        = <any US-ASCII uppercase letter "A".."Z">
+//      LOALPHA        = <any US-ASCII lowercase letter "a".."z">
+//      ALPHA          = UPALPHA | LOALPHA
+//      DIGIT          = <any US-ASCII digit "0".."9">
+//      CTL            = <any US-ASCII control character
+//                       (octets 0 - 31) and DEL (127)>
+//      CR             = <US-ASCII CR, carriage return (13)>
+//      LF             = <US-ASCII LF, linefeed (10)>
+//      SP             = <US-ASCII SP, space (32)>
+//      HT             = <US-ASCII HT, horizontal-tab (9)>
+//      <">            = <US-ASCII double-quote mark (34)>
+// ----------------------------------------------------------------------------
 
 export class CookieParser {
-    options: Required<CookieOptions>;
-    constructor(options: CookieOptions) {
-        this.options = mergeOptionsWithDefaults(options);
+    private options: Required<CookieParserOptions>;
+    // private encoder: Required<CookieEncoder>;
+    constructor(options?: CookieParserOptions) {
+        const defaultOptions: Required<CookieParserOptions> = {
+            encoder: new BaseCookieEncoder(),
+            getTime: Date.now,
+            strict: false
+        };
+        this.options = mergeCookieParserOptions(defaultOptions, options);
     }
-
-    // private validateString(): boolean {
-    //     // https://tools.ietf.org/html/rfc6265#section-4.1
-
-    //     // set-cookie-header = "Set-Cookie:" SP set-cookie-string
-    //     // set-cookie-string = cookie-pair *( ";" SP cookie-av )
-    //     // cookie-pair       = cookie-name "=" cookie-value
-    //     // cookie-name       = token
-    //     // cookie-value      = *cookie-octet / ( DQUOTE *cookie-octet DQUOTE )
-    //     // cookie-octet      = %x21 / %x23-2B / %x2D-3A / %x3C-5B / %x5D-7E
-    //     //                       ; US-ASCII characters excluding CTLs,
-    //     //                       ; whitespace DQUOTE, comma, semicolon,
-    //     //                       ; and backslash
-    //     // token             = <token, defined in [RFC2616], Section 2.2>
-    //     // token             = 1*<any CHAR except CTLs or separators>
-    //     // separators        = "(" | ")" | "<" | ">" | "@"
-    //     //                   | "," | ";" | ":" | "\" | <">
-    //     //                   | "/" | "[" | "]" | "?" | "="
-    //     //                   | "{" | "}" | SP | HT
-
-    //     // cookie-av         = expires-av / max-age-av / domain-av /
-    //     //                     path-av / secure-av / httponly-av /
-    //     //                     extension-av
-    //     // expires-av        = "Expires=" sane-cookie-date
-    //     // sane-cookie-date  = <rfc1123-date, defined in [RFC2616], Section 3.3.1>
-    //     // max-age-av        = "Max-Age=" non-zero-digit *DIGIT
-    //     //                       ; In practice, both expires-av and max-age-av
-    //     //                       ; are limited to dates representable by the
-    //     //                       ; user agent.
-    //     // non-zero-digit    = %x31-39
-    //     //                       ; digits 1 through 9
-    //     // domain-av         = "Domain=" domain-value
-    //     // domain-value      = <subdomain>
-    //     //                       ; defined in [RFC1034], Section 3.5, as
-    //     //                       ; enhanced by [RFC1123], Section 2.1
-    //     // path-av           = "Path=" path-value
-    //     // path-value        = <any CHAR except CTLs or ";">
-    //     // secure-av         = "Secure"
-    //     // httponly-av       = "HttpOnly"
-    //     // extension-av      = <any CHAR except CTLs or ";">
-
-    //     // OCTET          = <any 8-bit sequence of data>
-    //     // CHAR           = <any US-ASCII character (octets 0 - 127)>
-    //     // UPALPHA        = <any US-ASCII uppercase letter "A".."Z">
-    //     // LOALPHA        = <any US-ASCII lowercase letter "a".."z">
-    //     // ALPHA          = UPALPHA | LOALPHA
-    //     // DIGIT          = <any US-ASCII digit "0".."9">
-    //     // CTL            = <any US-ASCII control character
-    //     //                  (octets 0 - 31) and DEL (127)>
-    //     // CR             = <US-ASCII CR, carriage return (13)>
-    //     // LF             = <US-ASCII LF, linefeed (10)>
-    //     // SP             = <US-ASCII SP, space (32)>
-    //     // HT             = <US-ASCII HT, horizontal-tab (9)>
-    //     // <">            = <US-ASCII double-quote mark (34)>
-
-    //     return true;
-    // }
 
     /**
      * Parses HTTP Set-Cookie header value.
@@ -99,7 +103,9 @@ export class CookieParser {
             options
         );
         const encoder: Required<CookieEncoder> = <Required<CookieEncoder>>parserOptions.encoder;
-        const encoderOptions: CookieEncoderOptions = parserOptions.encoderOptions;
+        const encoderOptions: Required<CookieEncoderOptions> = cookieParserToEncoderOptions(
+            parserOptions
+        );
         const strict: boolean = parserOptions.strict;
         // ----------------
         const cookie: Cookie = <Cookie>{};
@@ -198,7 +204,9 @@ export class CookieParser {
             options
         );
         const encoder: Required<CookieEncoder> = <Required<CookieEncoder>>parserOptions.encoder;
-        const encoderOptions: CookieEncoderOptions = parserOptions.encoderOptions;
+        const encoderOptions: Required<CookieEncoderOptions> = cookieParserToEncoderOptions(
+            parserOptions
+        );
         const strict: boolean = parserOptions.strict;
         // ----------------
         const cookies: Cookie[] = [];
@@ -251,7 +259,9 @@ export class CookieParser {
             options
         );
         const encoder: Required<CookieEncoder> = <Required<CookieEncoder>>parserOptions.encoder;
-        const encoderOptions: CookieEncoderOptions = parserOptions.encoderOptions;
+        const encoderOptions: Required<CookieEncoderOptions> = cookieParserToEncoderOptions(
+            parserOptions
+        );
         const strict: boolean = parserOptions.strict;
         // ----------------
         const ctx: Cookie = { ...cookie };
@@ -330,7 +340,9 @@ export class CookieParser {
             options
         );
         const encoder: Required<CookieEncoder> = <Required<CookieEncoder>>parserOptions.encoder;
-        const encoderOptions: CookieEncoderOptions = parserOptions.encoderOptions;
+        const encoderOptions: Required<CookieEncoderOptions> = cookieParserToEncoderOptions(
+            parserOptions
+        );
         const strict: boolean = parserOptions.strict;
         // ----------------
         const items: string[] = [];
@@ -352,5 +364,39 @@ export class CookieParser {
             items.push(`${name}=${value || ''}`);
         }
         return items.join('; ');
+    }
+
+    /**
+     * Remove expired cookies from list
+     */
+    removeExpired(
+        cookies: Cookie[],
+        removeSessionCookies: boolean = false,
+        options?: CookieParserOptions
+    ): Cookie[] {
+        const parserOptions: Required<CookieParserOptions> = mergeCookieParserOptions(
+            this.options,
+            options
+        );
+        const now: number = parserOptions.getTime();
+        return cookies.filter(
+            (i: Cookie): boolean => {
+                if (typeof i.expires === 'number' && Number.isSafeInteger(i.expires)) {
+                    return i.expires > now;
+                } else if (!removeSessionCookies) {
+                    return false;
+                }
+                return true;
+            }
+        );
+    }
+
+    /**
+     * Merge two collection of cookies
+     */
+    merge(existingCookies: Cookie[], newCookies: Cookie[]): Cookie[] {
+        return existingCookies
+            .filter((i: Cookie) => newCookies.every((x: Cookie) => x.name !== i.name))
+            .concat(newCookies);
     }
 }

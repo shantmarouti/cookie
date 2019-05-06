@@ -1,5 +1,4 @@
 export { Cookie } from './cookie';
-export { DefaultCookieEncoder } from './default-encoder';
 export { CookieEncoder } from './encoder';
 export {
     CookieError,
@@ -7,7 +6,5 @@ export {
     InvalidCookieEncoderError,
     InvalidCookieStringError
 } from './errors';
-export { CookieEncoderOptions, CookieOptions, CookieParserOptions } from './options';
+export { CookieEncoderOptions, CookieParserOptions } from './options';
 export { CookieParser } from './parser';
-
-export { merge, removeExpired } from './helpers';

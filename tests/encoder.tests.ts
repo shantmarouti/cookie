@@ -1,13 +1,13 @@
 import { assert } from 'chai';
-import { DefaultCookieEncoder } from '../src/default-encoder';
+import { BaseCookieEncoder } from '../src/base-encoder';
 import { CookieEncoder } from '../src/encoder';
 import { Required } from '../src/option-helpers';
 import { CookieEncoderOptions } from '../src/options';
 
 let encoder: Required<CookieEncoder>;
-let basicEncoderOptions: CookieEncoderOptions;
+let basicEncoderOptions: Required<CookieEncoderOptions>;
 beforeEach(() => {
-    encoder = new DefaultCookieEncoder();
+    encoder = new BaseCookieEncoder();
     basicEncoderOptions = {
         getTime: Date.now,
         strict: true

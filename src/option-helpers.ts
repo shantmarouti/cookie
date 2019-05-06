@@ -1,6 +1,6 @@
 import { CookieEncoder } from './encoder';
 import { InvalidCookieEncoderError } from './errors';
-import { CookieOptions, CookieParserOptions } from './options';
+import { CookieEncoderOptions, CookieParserOptions } from './options';
 export type Purify<T extends string | number | symbol> = { [P in T]: T }[T];
 export type Required<T> = { [key in Purify<keyof T>]: T[key] & {} };
 
@@ -9,7 +9,7 @@ export type Required<T> = { [key in Purify<keyof T>]: T[key] & {} };
  */
 export function mergeEncoder(
     defaults: CookieEncoder,
-    encoder?: CookieEncoder
+    encoder: CookieEncoder | undefined | null
 ): Required<CookieEncoder> {
     const enc: CookieEncoder = encoder || {};
     const result: Required<CookieEncoder> = {
@@ -117,38 +117,36 @@ export function mergeEncoder(
 /**
  * @private
  */
-export function mergeCookieParserOptions(
-    defaults: CookieOptions,
-    options?: CookieParserOptions
-): Required<CookieParserOptions> {
-    if (options) {
-        return {
-            encoder: mergeEncoder(defaults.encoder, options.encoder),
-            encoderOptions: options.encoderOptions
-                ? { ...defaults.encoderOptions, ...options.encoderOptions }
-                : { ...defaults.encoderOptions },
-            strict: typeof options.strict === 'boolean' ? options.strict : defaults.strict
-        };
-    }
+export function mergeCookieEncoderOptions(
+    defaults: Required<CookieEncoderOptions>,
+    options: CookieEncoderOptions | undefined | null
+): Required<CookieEncoderOptions> {
+    const newOptions: CookieEncoderOptions = options || {};
+
     return {
-        encoder: { ...defaults.encoder },
-        encoderOptions: { ...defaults.encoderOptions },
-        strict: defaults.strict
+        getTime: typeof newOptions.getTime === 'function' ? newOptions.getTime : defaults.getTime,
+        strict: typeof newOptions.strict === 'boolean' ? newOptions.strict : defaults.strict
     };
 }
 
 /**
  * @private
  */
-export function mergeOptionsWithDefaults(defaults: CookieOptions): Required<CookieOptions> {
+export function mergeCookieParserOptions(
+    defaults: Required<CookieParserOptions>,
+    options: CookieParserOptions | undefined | null
+): Required<CookieParserOptions> {
+    const newOptions: CookieParserOptions = options || {};
+
     return {
-        encoder: mergeEncoder(defaults.encoder),
-        encoderOptions: {
-            getTime: Date.now,
-            strict: true,
-            ...(defaults.encoderOptions || {})
-        },
-        getTime: Date.now,
-        strict: true
+        encoder: mergeEncoder(defaults.encoder as any, newOptions.encoder),
+        getTime: typeof newOptions.getTime === 'function' ? newOptions.getTime : defaults.getTime,
+        strict: typeof newOptions.strict === 'boolean' ? newOptions.strict : defaults.strict
     };
+}
+
+export function cookieParserToEncoderOptions(
+    cookieParserOptions: Required<CookieParserOptions>
+): Required<CookieEncoderOptions> {
+    return { getTime: cookieParserOptions.getTime, strict: cookieParserOptions.strict };
 }

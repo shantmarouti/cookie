@@ -1,12 +1,12 @@
 {
   "name": "@maloos/cookie",
-  "version": "1.0.1",
+  "version": "1.0.0-alpha-2",
   "description": "",
   "main": "index.js",
   "typings": "index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "test": "npm run build && mocha dist/tests/**/*.tests.js",
+    "test": "rimraf reports && npm run build && mocha -R mocha-multi --reporter-options xunit=reports/test/test-result.xml,spec=- dist/tests/**/*.tests.js",
     "build": "rimraf dist && tsc",
     "lint": "tslint --fix -p ./tsconfig.json -c ./tslint.json -e dist/**/*.ts",
     "format": "prettier --write --config ./.prettierrc.json --ignore-path ./.gitignore \"{src,tests}/**/*\"",
@@ -23,11 +23,12 @@
     "cpy": "^7.0.1",
     "cpy-cli": "^2.0.0",
     "mocha": "^5.2.0",
+    "mocha-multi": "^1.1.0",
     "prettier": "^1.14.0",
-    "rimraf": "^2.6.2",
+    "rimraf": "^2.6.3",
     "tslint": "^5.11.0",
     "tslint-language-service": "^0.9.9",
-    "typescript": "^2.9.2"
+    "typescript": "^3.4.5"
   },
   "peerDependencies": {
     "tslib": "^1.9.3"

@@ -1,21 +1,11 @@
 import { assert } from 'chai';
 import { Cookie } from '../src/cookie';
-import { DefaultCookieEncoder } from '../src/default-encoder';
-import { CookieEncoder } from '../src/encoder';
 import { CookieParser } from '../src/parser';
 
-let encoder: CookieEncoder;
 let parser: CookieParser;
 
 beforeEach(() => {
-    encoder = new DefaultCookieEncoder();
     parser = new CookieParser({
-        encoder,
-        encoderOptions: {
-            getTime: Date.now,
-            strict: true
-        },
-        getTime: Date.now,
         strict: true
     });
 });
@@ -219,10 +209,7 @@ describe('CookieParser', () => {
 
         it('max-age', () => {
             const cookie: Cookie = parser.parseSetCookie('id=5; Max-Age=15', {
-                encoderOptions: {
-                    getTime: (): number => 0,
-                    strict: true
-                }
+                getTime: (): number => 0
             });
             assert.deepEqual<Cookie>(cookie, {
                 expires: 15000,
@@ -233,10 +220,7 @@ describe('CookieParser', () => {
 
         it('max-age lowercase', () => {
             const cookie: Cookie = parser.parseSetCookie('id=5; max-age=15', {
-                encoderOptions: {
-                    getTime: (): number => 0,
-                    strict: true
-                }
+                getTime: (): number => 0
             });
             assert.deepEqual<Cookie>(cookie, {
                 expires: 15000,
@@ -247,10 +231,7 @@ describe('CookieParser', () => {
 
         it('max-age whitespace', () => {
             const cookie: Cookie = parser.parseSetCookie('id=5; max-age  =  15', {
-                encoderOptions: {
-                    getTime: (): number => 0,
-                    strict: true
-                }
+                getTime: (): number => 0
             });
             assert.deepEqual<Cookie>(cookie, {
                 expires: 15000,
@@ -263,10 +244,7 @@ describe('CookieParser', () => {
             const cookie: Cookie = parser.parseSetCookie(
                 'id=5; Max-Age=60; Expires=Thu, 01 Jan 1970 00:00:15 GMT',
                 {
-                    encoderOptions: {
-                        getTime: (): number => 0,
-                        strict: true
-                    }
+                    getTime: (): number => 0
                 }
             );
             assert.deepEqual<Cookie>(cookie, {
@@ -325,10 +303,7 @@ describe('CookieParser', () => {
                     'Secure'
                 ].join('; '),
                 {
-                    encoderOptions: {
-                        getTime: (): number => 0,
-                        strict: true
-                    }
+                    getTime: (): number => 0
                 }
             );
             assert.deepEqual<Cookie>(cookie, {
@@ -511,7 +486,7 @@ describe('CookieParser', () => {
                     name: 'id',
                     value: '5'
                 },
-                { encoderOptions: { getTime: (): number => 0, strict: true } }
+                { getTime: (): number => 0 }
             );
             assert.strictEqual(
                 result,
@@ -657,6 +632,16 @@ describe('CookieParser', () => {
                 }
             ]);
             assert.deepEqual(result, '__Host-id=5');
+        });
+    });
+
+    describe('merge', () => {
+        it('basic', () => {
+            const existingCookies: Cookie[] = [{ name: 'id', value: '5' }];
+            const newCookies: Cookie[] = [{ name: 'id', value: '10' }];
+
+            const result: Cookie[] = parser.merge(existingCookies, newCookies);
+            assert.deepEqual(result, [{ name: 'id', value: '10' }]);
         });
     });
 });

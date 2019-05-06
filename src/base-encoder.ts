@@ -1,10 +1,11 @@
 import { CookieEncoder } from './encoder';
+import { Required } from './option-helpers';
 import { CookieEncoderOptions } from './options';
 
 /**
  * Default implementation for CookieEncoder
  */
-export class DefaultCookieEncoder implements CookieEncoder {
+export class BaseCookieEncoder implements Required<CookieEncoder> {
     serializeDomain(domain?: string): string | undefined {
         if (typeof domain === 'string') {
             return domain;
@@ -24,7 +25,7 @@ export class DefaultCookieEncoder implements CookieEncoder {
 
     serializeMaxAge(
         expires: number | undefined,
-        options: CookieEncoderOptions
+        options: Required<CookieEncoderOptions>
     ): string | undefined {
         if (Number.isSafeInteger(<number>expires)) {
             const expirationSecondsFromNow: number = Math.max(
@@ -74,7 +75,10 @@ export class DefaultCookieEncoder implements CookieEncoder {
         return undefined;
     }
 
-    parseMaxAge(maxAge: string | undefined, options: CookieEncoderOptions): number | undefined {
+    parseMaxAge(
+        maxAge: string | undefined,
+        options: Required<CookieEncoderOptions>
+    ): number | undefined {
         if (typeof maxAge === 'string') {
             const maxAgeNumber: number = +maxAge;
             if (Number.isSafeInteger(maxAgeNumber)) {
