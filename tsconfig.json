@@ -35,6 +35,7 @@
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,
     "forceConsistentCasingInFileNames": true,
+    "noUnusedParameters": true,
 
     /* Module Resolution Options */
     "moduleResolution": "node",
