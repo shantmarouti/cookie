@@ -1,117 +1,28 @@
 import { CookieEncoder } from './encoder';
 import { InvalidCookieEncoderError } from './errors';
 import { CookieEncoderOptions, CookieParserOptions } from './options';
-export type Purify<T extends string | number | symbol> = { [P in T]: T }[T];
-export type Required<T> = { [key in Purify<keyof T>]: T[key] & {} };
 
-/**
- * @private
- */
-export function mergeEncoder(
-    defaults: CookieEncoder,
-    encoder: CookieEncoder | undefined | null
-): Required<CookieEncoder> {
-    const enc: CookieEncoder = encoder || {};
-    const result: Required<CookieEncoder> = {
-        parseDomain:
-            typeof enc.parseDomain === 'function'
-                ? enc.parseDomain
-                : typeof defaults.parseDomain === 'function'
-                    ? defaults.parseDomain
-                    : (domain: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('parseDomain');
-                      },
-        parseExpires:
-            typeof enc.parseExpires === 'function'
-                ? enc.parseExpires
-                : typeof defaults.parseExpires === 'function'
-                    ? defaults.parseExpires
-                    : (expires: string | undefined): number | undefined => {
-                          throw new InvalidCookieEncoderError('parseExpires');
-                      },
-        parseMaxAge:
-            typeof enc.parseMaxAge === 'function'
-                ? enc.parseMaxAge
-                : typeof defaults.parseMaxAge === 'function'
-                    ? defaults.parseMaxAge
-                    : (maxAge: string | undefined): number | undefined => {
-                          throw new InvalidCookieEncoderError('parseMaxAge');
-                      },
-        parseName:
-            typeof enc.parseName === 'function'
-                ? enc.parseName
-                : typeof defaults.parseName === 'function'
-                    ? defaults.parseName
-                    : (name: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('parseName');
-                      },
-        parsePath:
-            typeof enc.parsePath === 'function'
-                ? enc.parsePath
-                : typeof defaults.parsePath === 'function'
-                    ? defaults.parsePath
-                    : (path: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('parsePath');
-                      },
-        parseValue:
-            typeof enc.parseValue === 'function'
-                ? enc.parseValue
-                : typeof defaults.parseValue === 'function'
-                    ? defaults.parseValue
-                    : (value: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('parseValue');
-                      },
-        serializeDomain:
-            typeof enc.serializeDomain === 'function'
-                ? enc.serializeDomain
-                : typeof defaults.serializeDomain === 'function'
-                    ? defaults.serializeDomain
-                    : (domain: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('serializeDomain');
-                      },
-        serializeExpires:
-            typeof enc.serializeExpires === 'function'
-                ? enc.serializeExpires
-                : typeof defaults.serializeExpires === 'function'
-                    ? defaults.serializeExpires
-                    : (expires: number | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('serializeExpires');
-                      },
-        serializeMaxAge:
-            typeof enc.serializeMaxAge === 'function'
-                ? enc.serializeMaxAge
-                : typeof defaults.serializeMaxAge === 'function'
-                    ? defaults.serializeMaxAge
-                    : (maxAge: number | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('serializeMaxAge');
-                      },
-        serializeName:
-            typeof enc.serializeName === 'function'
-                ? enc.serializeName
-                : typeof defaults.serializeName === 'function'
-                    ? defaults.serializeName
-                    : (name: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('serializeName');
-                      },
-        serializePath:
-            typeof enc.serializePath === 'function'
-                ? enc.serializePath
-                : typeof defaults.serializePath === 'function'
-                    ? defaults.serializePath
-                    : (path: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('serializePath');
-                      },
-        serializeValue:
-            typeof enc.serializeValue === 'function'
-                ? enc.serializeValue
-                : typeof defaults.serializeValue === 'function'
-                    ? defaults.serializeValue
-                    : (value: string | undefined): string | undefined => {
-                          throw new InvalidCookieEncoderError('serializeValue');
-                      }
-    };
+export function validateEncoder(encoder: CookieEncoder): void {
+    const methods: string[] = [
+        'parseDomain',
+        'parseExpires',
+        'parseMaxAge',
+        'parseName',
+        'parsePath',
+        'parseValue',
+        'serializeDomain',
+        'serializeExpires',
+        'serializeMaxAge',
+        'serializeName',
+        'serializePath',
+        'serializeValue'
+    ];
 
-    return result;
+    for (const method of methods) {
+        if (typeof (encoder as any)[method] !== 'function') {
+            throw new InvalidCookieEncoderError(`Missing or invalid method "${method}"!`);
+        }
+    }
 }
 
 /**
@@ -138,11 +49,15 @@ export function mergeCookieParserOptions(
 ): Required<CookieParserOptions> {
     const newOptions: CookieParserOptions = options || {};
 
-    return {
-        encoder: mergeEncoder(defaults.encoder as any, newOptions.encoder),
+    const combined: Required<CookieParserOptions> = {
+        encoder: newOptions.encoder || defaults.encoder,
         getTime: typeof newOptions.getTime === 'function' ? newOptions.getTime : defaults.getTime,
         strict: typeof newOptions.strict === 'boolean' ? newOptions.strict : defaults.strict
     };
+
+    validateEncoder(combined.encoder);
+
+    return combined;
 }
 
 export function cookieParserToEncoderOptions(

@@ -1,13 +1,18 @@
 import { assert } from 'chai';
 import { Cookie } from '../src/cookie';
+import { CookieEncoder } from '../src/encoder';
+import { CookieEncoderOptions } from '../src/options';
 import { CookieParser } from '../src/parser';
 
 let parser: CookieParser;
 
 beforeEach(() => {
-    parser = new CookieParser({
+    const encoder: Required<CookieEncoder> = new CookieEncoder();
+    const encoderOptions: Required<CookieEncoderOptions> = {
+        getTime: Date.now,
         strict: true
-    });
+    };
+    parser = new CookieParser(encoder, encoderOptions);
 });
 
 describe('CookieParser', () => {

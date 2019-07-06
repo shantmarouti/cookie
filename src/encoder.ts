@@ -1,4 +1,3 @@
-import { Required } from './option-helpers';
 import { CookieEncoderOptions } from './options';
 
 /**
@@ -6,7 +5,7 @@ import { CookieEncoderOptions } from './options';
  * diffrent portions of cookie.
  * You can provide your own implementation if the default one dont satisfy your needs.
  */
-export interface CookieEncoder {
+export class CookieEncoder {
     /**
      * Function used for Domain attribute value serialization.
      *
@@ -14,10 +13,16 @@ export interface CookieEncoder {
      * @returns {(string | undefined)} Returns serialized Domain attribute value.
      * Returning undefined causes the parser to ignore this attribute.
      */
-    serializeDomain?(
+    serializeDomain(
         domain: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof domain === 'string') {
+            return domain;
+        }
+        return undefined;
+    }
 
     /**
      * Function used to serialize Cookie.expires into date string suitable for Expires attribute.
@@ -26,10 +31,20 @@ export interface CookieEncoder {
      * @returns {(string | undefined)} Returns serialized Expires attribute value.
      * Returning undefined causes the parser to ignore this attribute.
      */
-    serializeExpires?(
+    serializeExpires(
         expires: number | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (Number.isSafeInteger(<number>expires)) {
+            const date: Date = new Date(<number>expires);
+            if (!isNaN(+date)) {
+                return date.toUTCString();
+            }
+        }
+        return undefined;
+    }
+
     /**
      * Function used for calculating Max-Age attribute.
      *
@@ -38,42 +53,75 @@ export interface CookieEncoder {
      * @returns {(string | undefined)} Returns serialized Max-Age attribute value.
      * Returning undefined causes the parser to ignore this attribute.
      */
-    serializeMaxAge?(
+    serializeMaxAge(
         expires: number | undefined,
         options: Required<CookieEncoderOptions>
-    ): string | undefined;
+    ): string | undefined {
+        if (Number.isSafeInteger(<number>expires)) {
+            const expirationSecondsFromNow: number = Math.max(
+                0,
+                (<number>expires - options.getTime()) / 1000
+            );
+            return expirationSecondsFromNow.toString();
+        }
+        return undefined;
+    }
 
     /**
      * Function used for encoding cookie name.
      */
-    serializeName?(
+    serializeName(
         name: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof name === 'string') {
+            return name;
+        }
+        return undefined;
+    }
 
     /**
      * Function used for encoding Path directive.
      */
-    serializePath?(
+    serializePath(
         path: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof path === 'string') {
+            return path;
+        }
+        return undefined;
+    }
 
     /**
      * Function used for encoding cookie value.
      */
-    serializeValue?(
-        value: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+    serializeValue(
+        value: string,
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof value === 'string') {
+            return encodeURIComponent(value);
+        }
+        return undefined;
+    }
 
     /**
      * Function used for decoding Domain attribute.
      */
-    parseDomain?(
+    parseDomain(
         domain: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof domain === 'string') {
+            return domain;
+        }
+        return undefined;
+    }
 
     /**
      * Function used for converting Expires attribute to Cookie.expires,
@@ -81,10 +129,19 @@ export interface CookieEncoder {
      *
      * @param {string} expires Expires attribute value
      */
-    parseExpires?(
+    parseExpires(
         expires: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): number | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): number | undefined {
+        if (typeof expires === 'string') {
+            const result: number = Date.parse(expires);
+            if (Number.isSafeInteger(result)) {
+                return result;
+            }
+        }
+        return undefined;
+    }
 
     /**
      * Function used for converting Max-Age directive to Cookie.expires.
@@ -92,33 +149,60 @@ export interface CookieEncoder {
      * @param {number} expires Cookie.expires value
      * @param {number} now Current date in milliseconds starting from January 1, 1970 00:00:00 UTC
      */
-    parseMaxAge?(
+    parseMaxAge(
         maxAge: string | undefined,
         options: Required<CookieEncoderOptions>
-    ): number | undefined;
+    ): number | undefined {
+        if (typeof maxAge === 'string') {
+            const maxAgeNumber: number = +maxAge;
+            if (Number.isSafeInteger(maxAgeNumber)) {
+                return options.getTime() + maxAgeNumber * 1000;
+            }
+        }
+        return undefined;
+    }
 
     /**
      * Function used for decoding cookie name.
      * By default cookie names do not get decoded.
      */
-    parseName?(
+    parseName(
         name: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof name === 'string') {
+            return name;
+        }
+        return undefined;
+    }
 
     /**
      * Function used for decoding Path directive.
      */
-    parsePath?(
+    parsePath(
         path: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof path === 'string') {
+            return path;
+        }
+        return undefined;
+    }
 
     /**
      * Function used for decoding cookie value.
      */
-    parseValue?(
+    parseValue(
         value: string | undefined,
-        options: Required<CookieEncoderOptions>
-    ): string | undefined;
+        // tslint:disable-next-line: variable-name
+        _options: Required<CookieEncoderOptions>
+    ): string | undefined {
+        if (typeof value === 'string') {
+            // TODO: This can be throw error when an malformed character exists in the passed value.
+            return decodeURIComponent(value);
+        }
+        return undefined;
+    }
 }

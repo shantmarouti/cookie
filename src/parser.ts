@@ -1,8 +1,7 @@
-import { BaseCookieEncoder } from './base-encoder';
 import { Cookie } from './cookie';
 import { CookieEncoder } from './encoder';
 import { InvalidCookieStringError } from './errors';
-import { cookieParserToEncoderOptions, mergeCookieParserOptions, Required } from './option-helpers';
+import { cookieParserToEncoderOptions, mergeCookieParserOptions } from './option-helpers';
 import { CookieEncoderOptions, CookieParserOptions } from './options';
 
 // ----------------------------------------------------------------------------
@@ -66,10 +65,21 @@ import { CookieEncoderOptions, CookieParserOptions } from './options';
 
 export class CookieParser {
     private options: Required<CookieParserOptions>;
-    // private encoder: Required<CookieEncoder>;
-    constructor(options?: CookieParserOptions) {
+
+    /**
+     * @param {CookieEncoder} encoder Default CookieEncoder used by CookieParser.
+     *
+     * This can be overwritten by the end user
+     *
+     * @param {CookieEncoderOptions} [options] Default CookieEncoderOptions
+     *
+     * This can be overwritten by the end user
+     *
+     * @memberof CookieParser
+     */
+    constructor(encoder: CookieEncoder, options?: CookieEncoderOptions) {
         const defaultOptions: Required<CookieParserOptions> = {
-            encoder: new BaseCookieEncoder(),
+            encoder,
             getTime: Date.now,
             strict: false
         };
